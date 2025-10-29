@@ -996,6 +996,9 @@ const comercialData = {
 </div>
 </section>
 <div class="section-title"><h2>PREÇO — simples e justo</h2>
+
+  
+
 <div class="price-breakdown">
 <h4>Detalhamento de custos</h4>
 <ul>
@@ -1041,6 +1044,183 @@ const comercialData = {
 </div>
 </div>
 </div></section>
+
+<!-- ========= PREÇO — Simulador Visual (sem marketing) =================== -->
+<style>
+  .price-wrap{background:var(--ff-card,#0f172a);border:1px solid rgba(255,255,255,.06);
+    border-radius:16px;padding:22px;margin-top:26px}
+  .price-title{font-size:clamp(18px,2.2vw,22px);font-weight:700;margin:0 0 12px}
+  .price-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+  @media (max-width:980px){.price-grid{grid-template-columns:1fr}}
+
+  .p-card{background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.08);
+    border-radius:12px;padding:14px}
+  .p-row{display:grid;grid-template-columns:1fr 140px;gap:10px;align-items:center;margin:8px 0}
+  .p-row input[type="number"]{width:100%;background:#0b1220;border:1px solid rgba(255,255,255,.1);
+    border-radius:10px;padding:10px;color:#e8f0ff;font-variant-numeric:tabular-nums}
+  .p-row input[type="range"]{width:100%}
+  .p-chip{display:inline-flex;gap:8px;align-items:center;background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 10px;font-size:12px;margin-right:8px}
+  .p-note{opacity:.75;font-size:12px;margin-top:6px}
+
+  .p-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+  .p-kpi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;padding:10px;text-align:center}
+  .p-kpi b{font-size:18px;display:block;margin-top:2px;font-variant-numeric:tabular-nums}
+
+  #priceDonut{height:320px;min-height:280px}
+  .p-examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .p-example{cursor:pointer;background:linear-gradient(135deg,#1f2937aa,#111827aa);
+    border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:8px 10px;font-size:12px}
+  .p-example:hover{border-color:rgba(255,255,255,.25)}
+</style>
+
+<div class="price-wrap" id="price-visual">
+  <div class="price-title">Simulador</div>
+  <div class="price-grid">
+    <!-- Controles -->
+    <div class="p-card">
+      <div class="p-row">
+        <label>Baseline mensal (média 3–6 meses)</label>
+        <input id="p-baseline" type="number" min="0" step="500" value="50000">
+      </div>
+      <div class="p-row">
+        <label>Faturamento do mês (novo)</label>
+        <input id="p-novo" type="number" min="0" step="500" value="80000">
+      </div>
+      <div class="p-row">
+        <label>Mês desde o início (1–12)</label>
+        <input id="p-mes" type="range" min="1" max="12" value="4">
+      </div>
+
+      <div>
+        <span class="p-chip">Retainer: <b id="p-retainer-lbl">$ 2,600</b></span>
+        <span class="p-chip">% sobre incremental: <b id="p-percent-lbl">10%</b></span>
+      </div>
+
+      <div class="p-note" id="p-regra"></div>
+
+      <div class="p-kpis">
+        <div class="p-kpi"><small>Incremental</small><b id="p-inc">$ 0</b></div>
+        <div class="p-kpi"><small>% Performance</small><b id="p-perf">$ 0</b></div>
+        <div class="p-kpi"><small>Total do mês</small><b id="p-total">$ 0</b></div>
+      </div>
+
+      <div class="p-note">Dica: clique num exemplo para preencher rápido.</div>
+      <div class="p-examples" id="p-examples"></div>
+    </div>
+
+    <!-- Donut -->
+    <div class="p-card">
+      <div id="priceDonut" aria-label="Composição do pagamento mensal"></div>
+      <div class="p-note">Composição: <b>Retainer</b> (fixo) + <b>Performance</b> (% sobre o que exceder a baseline após 90 dias).</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  const RETAINER = 2600;   // retainer já inclui marketing
+  const PERCENT  = 10;
+
+  const $ = (id)=>document.getElementById(id);
+  const $baseline = $('p-baseline');
+  const $novo     = $('p-novo');
+  const $mes      = $('p-mes');
+  const $inc      = $('p-inc');
+  const $perf     = $('p-perf');
+  const $total    = $('p-total');
+  const $regra    = $('p-regra');
+  $('p-retainer-lbl').textContent = money(RETAINER);
+  $('p-percent-lbl').textContent  = PERCENT + '%';
+
+  // exemplos
+  const exemplos = [
+    {b:50000,n:80000,label:'$50k → $80k'},
+    {b:80000,n:120000,label:'$80k → $120k'},
+    {b:40000,n:120000,label:'$40k → $120k'},
+    {b:60000,n:75000,label:'$60k → $75k'},
+  ];
+  const exHost = $('p-examples');
+  exemplos.forEach(e=>{
+    const span = document.createElement('span');
+    span.className = 'p-example';
+    span.textContent = e.label;
+    span.onclick = ()=>{ $baseline.value=e.b; $novo.value=e.n; update(); };
+    exHost.appendChild(span);
+  });
+
+  // Donut
+  const chart = echarts.init($('priceDonut'));
+
+  function setDonut(perf){
+    const data = [
+      {name:'Retainer',   value: RETAINER},
+      {name:'Performance',value: perf}
+    ];
+    chart.setOption({
+      backgroundColor:'transparent',
+      legend:{
+        bottom: 0,
+        icon:'circle',
+        textStyle:{color:'#dfe7ff',fontSize:12},
+        itemGap:16,
+        data: data.map(d => `${d.name} • ${money(d.value)}`)
+      },
+      tooltip:{
+        trigger:'item',
+        formatter: p => `${p.name}: ${money(p.value)} (${p.percent}%)`
+      },
+      series:[{
+        type:'pie', radius:['58%','80%'],
+        label:{
+          show:true,
+          formatter:'{d}%',
+          color:'#eaf2ff',
+          fontSize:14,
+          fontWeight:700
+        },
+        labelLine:{length:18,length2:10},
+        itemStyle:{borderWidth:2, borderColor:'rgba(15,23,42,.85)'},
+        data:data,
+        color:['#22c55e','#60a5fa']
+      }]
+    });
+  }
+
+  function money(v){ return v.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}); }
+  function ordinal(n){ if(n===1)return'1º'; if(n===2)return'2º'; if(n===3)return'3º'; return n+'º'; }
+
+  function update(){
+    const base = +$baseline.value||0;
+    const novo = +$novo.value||0;
+    const mes  = +$mes.value||1;
+
+    const inc  = Math.max(0, novo - base);
+    const perf = (mes <= 3) ? 0 : inc * (PERCENT/100);
+    const total = RETAINER + perf;
+
+    $inc.textContent   = money(inc);
+    $perf.textContent  = money(perf);
+    $total.textContent = money(total);
+
+    $regra.innerHTML = (mes<=3)
+      ? `Período de implantação (mês ${mes}). <b>Sem % sobre o incremental</b>.`
+      : `A partir do <b>${ordinal(mes)} mês</b> aplicamos <b>${PERCENT}%</b> sobre o que exceder a baseline.`;
+
+    setDonut(perf);
+  }
+
+  [$baseline,$novo,$mes].forEach(i=> i.addEventListener('input',update));
+  window.addEventListener('resize',()=>chart.resize());
+  update();
+})();
+</script>
+<!-- ========= /PREÇO — Simulador Visual ================================== -->
+
+
+
 <section class="section" id="glossario">
 <div class="section-title"><h2>GLOSSÁRIO — siglas sem mistério</h2><p class="section-sub">Passe o olho quando pintar dúvida. Tudo.</p></div>
 <ul>

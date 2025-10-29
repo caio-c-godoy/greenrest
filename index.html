@@ -67,7 +67,17 @@
     /* Sticky actions */
     .sticky-actions{position:fixed;right:20px;bottom:20px;display:flex;gap:10px;z-index:80}
     @media print{body{background:#fff;color:#111} header,.sticky-actions{display:none} .card{background:#fff;border:1px solid #e5e7eb} a{color:#111} }
+    #mk-graph{
+  margin-top:16px; padding:20px; border-radius:20px;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+}
+#mk-graph h3{ color:#e5e7eb; margin:0 0 6px; font-weight:800; }
+#mk-graph small{ color:#94a3b8; }
+.mk-chart-wrap{ position:relative; width:100%; height:320px; }
+
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+
 <style>
 /* ==== Profissionais envolvidos (auto-inserido) ==== */
 .section-team{
@@ -156,6 +166,7 @@
 .price-breakdown-container, .price-card, .price-breakdown {
   background: #f8fbff !important;
 }
+
 </style></head>
 <body>
 <header class="sticky">
@@ -206,6 +217,111 @@
 </div>
 </div>
 </section>
+<!-- === Fluxo das Soluções (colar dentro do <body>) === -->
+<section id="fluxo-solucoes" class="ff-flow">
+  <style>
+    .ff-flow{padding:56px 16px; max-width:1100px; margin:0 auto; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
+    .ff-flow h2{font-size:clamp(24px,3vw,32px); margin:0 0 8px; font-weight:800; letter-spacing:.2px}
+    .ff-flow p.sub{color:#6b7280; margin:0 0 28px; font-size:clamp(14px,2vw,16px)}
+    .ff-steps{display:flex; align-items:stretch; gap:14px}
+    .ff-step{flex:1; background:#fff; border:1px solid #e5e7eb; border-radius:18px; padding:18px; box-shadow:0 6px 18px rgba(0,0,0,.06); position:relative}
+    .ff-step h3{margin:0 0 8px; font-size:clamp(16px,2.2vw,20px)}
+    .ff-step p{margin:0; color:#374151; font-size:clamp(13px,1.8vw,15px)}
+    .ff-badge{position:absolute; top:-12px; left:-12px; width:36px; height:36px; border-radius:999px;
+      display:grid; place-items:center; font-weight:800; background:#0d6efd; color:#fff; font-size:14px; box-shadow:0 6px 14px rgba(13,110,253,.35)}
+    .ff-arrow{width:58px; min-width:58px; display:grid; place-items:center}
+    .ff-arrow svg{width:100%; height:24px}
+    .ff-kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+    .ff-kpi{background:#f9fafb; border:1px solid #eef2f7; border-radius:14px; padding:12px}
+    .ff-kpi .v{font-weight:800; font-size:clamp(16px,2.5vw,22px); line-height:1}
+    .ff-kpi .l{color:#6b7280; font-size:12px}
+    .ff-cta{margin-top:18px; display:flex; gap:10px; flex-wrap:wrap}
+    .ff-cta a{padding:10px 14px; border-radius:12px; text-decoration:none; font-weight:700; border:1px solid #0d6efd}
+    .ff-cta a.primary{background:#0d6efd; color:#fff}
+    .ff-cta a.secondary{background:#fff; color:#0d6efd}
+    @media (max-width:900px){ .ff-steps{flex-direction:column} .ff-arrow{transform:rotate(90deg)} }
+    /* animação sutil da seta */
+    .dash path{stroke-dasharray:5 6; animation:dash 2.2s linear infinite}
+    @keyframes dash{to{stroke-dashoffset:-22}}
+  </style>
+
+  <h2>Fluxo das Soluções</h2>
+  <p class="sub">Vendemos mais, produzimos certinho e medimos tudo para repetir o que funciona.</p>
+
+  <div class="ff-steps">
+    <div class="ff-step">
+      <div class="ff-badge">1</div>
+      <h3>Vender mais</h3>
+      <p>Atração, anúncios e ofertas claras. Lead entra, agenda e recebe proposta rápida.</p>
+      <div class="ff-kpis">
+        <div class="ff-kpi"><div class="v">+35%</div><div class="l">Taxa de conversão</div></div>
+        <div class="ff-kpi"><div class="v">-40%</div><div class="l">Tempo p/ resposta</div></div>
+        <div class="ff-kpi"><div class="v">+3x</div><div class="l">Leads qualificados</div></div>
+      </div>
+    </div>
+
+    <div class="ff-arrow">
+      <svg viewBox="0 0 120 24" fill="none" class="dash" aria-hidden="true">
+        <path d="M2 12 H102" stroke="#0d6efd" stroke-width="3" stroke-linecap="round"/>
+        <path d="M102 4 L118 12 L102 20 Z" fill="#0d6efd"/>
+      </svg>
+    </div>
+
+    <div class="ff-step">
+      <div class="ff-badge">2</div>
+      <h3>Produzir certinho</h3>
+      <p>Processo padronizado: pedido, produção e entrega sem ruído. Cliente sabe cada etapa.</p>
+      <div class="ff-kpis">
+        <div class="ff-kpi"><div class="v">99%</div><div class="l">Conformidade</div></div>
+        <div class="ff-kpi"><div class="v">-32%</div><div class="l">Retrabalho</div></div>
+        <div class="ff-kpi"><div class="v">+20%</div><div class="l">Prazo cumprido</div></div>
+      </div>
+    </div>
+
+    <div class="ff-arrow">
+      <svg viewBox="0 0 120 24" fill="none" class="dash" aria-hidden="true">
+        <path d="M2 12 H102" stroke="#0d6efd" stroke-width="3" stroke-linecap="round"/>
+        <path d="M102 4 L118 12 L102 20 Z" fill="#0d6efd"/>
+      </svg>
+    </div>
+
+    <div class="ff-step">
+      <div class="ff-badge">3</div>
+      <h3>Medir & repetir</h3>
+      <p>Métricas viram decisões: o que performa fica, o que não performa é ajustado.</p>
+      <div class="ff-kpis">
+        <div class="ff-kpi"><div class="v">A/B</div><div class="l">Testes contínuos</div></div>
+        <div class="ff-kpi"><div class="v">ROI↑</div><div class="l">Investimento otimizado</div></div>
+        <div class="ff-kpi"><div class="v">NPS↑</div><div class="l">Satisfação</div></div>
+      </div>
+    </div>
+  </div>
+  
+</section>
+<!-- === /Fluxo das Soluções === -->
+
+<!-- Override de contraste para títulos e números -->
+<style>
+  /* Título dos cards mais escuro e forte */
+  #fluxo-solucoes .ff-step h3{
+    color:#0f172a !important;   /* bem escuro */
+    font-weight:800 !important; /* mais presença */
+  }
+
+  /* Números/percentuais bem destacados */
+  #fluxo-solucoes .ff-kpi .v{
+    color:#0b1220 !important;   /* ainda mais escuro */
+    font-weight:900 !important; /* super negrito */
+    letter-spacing:-0.2px;      /* levemente mais compacto */
+  }
+
+  /* Rótulos das KPIs com cinza mais legível */
+  #fluxo-solucoes .ff-kpi .l{
+    color:#334155 !important;   /* cinza bem legível */
+  }
+</style>
+
+
 <section class="section" id="software">
 <div class="section-title"><h2>SOFTWARE — ERP &amp; CRM (o cérebro da operação)</h2><p class="section-sub">Toque em cada cartão para ver a explicação.</p></div>
 <div class="grid g-3">
@@ -467,6 +583,124 @@
 </div>
 </div>
 </div></section>
+<div id="mk-graph" class="ff-card">
+  <div class="ff-card-h">
+    <h3>Leads por canal (últimos 30 dias)</h3>
+    <small class="ff-muted">Clique nos rótulos para ligar/desligar séries</small>
+  </div>
+  <div class="mk-chart-wrap">
+    <canvas id="mkChart"></canvas>
+  </div>
+</div>
+
+<!-- ===== FUNIL — visitas → leads → vendas ===== -->
+<section class="gr-card gr-funil">
+  <h3 class="gr-title">FUNIL — <b>visitas</b> → <b>leads</b> → <b>vendas</b></h3>
+
+  <div class="funnel" data-visitas="316" data-leads="33" data-vendas="5">
+    <div class="f-row f-visitas">
+      <span class="f-label">Visitas</span>
+      <span class="f-value"></span>
+    </div>
+
+    <div class="f-row f-leads">
+      <span class="f-label">Leads</span>
+      <span class="f-value"></span>
+    </div>
+
+    <div class="f-row f-vendas">
+      <span class="f-label">Vendas</span>
+      <span class="f-value"></span>
+    </div>
+  </div>
+
+  <div class="f-metrics">
+    <div><small>Visitas → Leads:</small> <b class="m-visitas-leads"></b></div>
+    <div><small>Leads → Vendas:</small> <b class="m-leads-vendas"></b></div>
+    <div><small>Visitas → Vendas:</small> <b class="m-visitas-vendas"></b></div>
+  </div>
+</section>
+
+<style>
+  /* cartão/base */
+  .gr-card{background:#0f172a;border:1px solid #1f2a44;border-radius:14px;padding:28px}
+  .gr-title{margin:0 0 16px;color:#e6f3ff;font-weight:800;letter-spacing:.2px}
+  /* funil */
+  .funnel{padding:18px;border:1px dashed #2b3b5d;border-radius:12px}
+  .f-row{
+    --bg1:#10b981; --bg2:#14b8a6; /* gradiente verde/água */
+    position:relative; height:56px; margin:16px auto; max-width:980px;
+    background:linear-gradient(90deg,var(--bg1),var(--bg2));
+    border-radius:14px; box-shadow:0 4px 20px rgba(16,185,129,.18);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 16px 0 18px; color:#061b12; font-weight:800;
+    transition:width .6s cubic-bezier(.2,.7,.2,1);
+    /* trapezoide suave nas pontas */
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  }
+  /* tamanhos diferentes deixam visual “em degraus” */
+  .f-visitas{height:58px}
+  .f-leads{height:48px}
+  .f-vendas{height:44px}
+
+  .f-label{color:#042e23; text-shadow:0 1px 0 rgba(255,255,255,.25)}
+  .f-value{
+    color:#042e23; font-variant-numeric:tabular-nums;
+    background:rgba(255,255,255,.55); padding:6px 10px; border-radius:10px;
+  }
+
+  /* métricas abaixo do funil */
+  .f-metrics{
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:12px; margin-top:14px; color:#b7c7e6
+  }
+  .f-metrics b{color:#ffffff}
+  @media (max-width:720px){
+    .f-metrics{grid-template-columns:1fr}
+  }
+</style>
+
+<script>
+(function(){
+  // Pega o bloco do funil
+  const el = document.querySelector('.funnel');
+  if(!el) return;
+
+  // Valores (vêm do data-* ou você pode sobrescrever aqui)
+  const visitas = +el.dataset.visitas || 0;
+  const leads   = +el.dataset.leads   || 0;
+  const vendas  = +el.dataset.vendas  || 0;
+
+  // Conversões
+  const pctVL = visitas ? (leads/visitas)  : 0;
+  const pctLV = leads   ? (vendas/leads)   : 0;
+  const pctVV = visitas ? (vendas/visitas) : 0;
+
+  // Largura proporcional às visitas (com largura mínima p/ não sumir)
+  const w = p => Math.max(14, Math.round(p*100)); // 14% mínimo
+  const rows = {
+    visitas: el.querySelector('.f-visitas'),
+    leads:   el.querySelector('.f-leads'),
+    vendas:  el.querySelector('.f-vendas'),
+  };
+  rows.visitas.style.width = '100%';
+  rows.leads.style.width   = w(pctVL) + '%';
+  rows.vendas.style.width  = w(pctVV) + '%';
+
+  // Exibe números + percentuais
+  const nf = n => n.toLocaleString('pt-BR');
+  rows.visitas.querySelector('.f-value').textContent = `${nf(visitas)} • 100%`;
+  rows.leads  .querySelector('.f-value').textContent = `${nf(leads)} • ${(pctVL*100).toFixed(1)}%`;
+  rows.vendas .querySelector('.f-value').textContent = `${nf(vendas)} • ${(pctVV*100).toFixed(1)}%`;
+
+  // Métricas de conversão
+  document.querySelector('.m-visitas-leads').textContent  = (pctVL*100).toFixed(1) + '%';
+  document.querySelector('.m-leads-vendas').textContent   = (pctLV*100).toFixed(1) + '%';
+  document.querySelector('.m-visitas-vendas').textContent = (pctVV*100).toFixed(1) + '%';
+})();
+</script>
+
+
 <div class="divider"></div>
 <section class="section" id="comercial">
 <div class="section-title"><h2>COMERCIAL — Showroom e B2B/White Label</h2><p class="section-sub">Toque em cada cartão para ver a explicação.</p></div>
@@ -709,5 +943,78 @@
       document.querySelectorAll('.card.reveal.active').forEach(function(c){ if(!c.contains(e.target)) c.classList.remove('active'); });
     });
   </script>
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('mkChart');
+
+  // Edite estes números conforme seus dados reais:
+  const canais   = ['Google Ads','Meta','TikTok/Nextdoor','WhatsApp/SMS','E-mail','Provas & Ofertas'];
+  const leads    = [8, 10, 3, 4, 6, 2];  // quantidade de leads por canal
+  const cpl      = [20, 12, 16.7,  8.75,  3.33,  7.5];  // custo por lead (US$) por canal
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: canais,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Leads',
+          data: leads,
+          borderWidth: 0,
+          backgroundColor: 'rgba(96,165,250,0.7)',   // azul
+          hoverBackgroundColor: 'rgba(96,165,250,0.95)',
+          borderRadius: 8
+        },
+        {
+          type: 'line',
+          label: 'CPL (US$)',
+          data: cpl,
+          yAxisID: 'y1',
+          tension: 0.35,
+          borderWidth: 3,
+          pointRadius: 4,
+          borderColor: '#10b981',                    // verde
+          pointBackgroundColor: '#10b981'
+        }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#e5e7eb', font: { weight: '600' } }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              if (ctx.dataset.type === 'line') return ` ${ctx.dataset.label}: $${ctx.formattedValue}`;
+              return ` ${ctx.dataset.label}: ${ctx.formattedValue}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#cbd5e1' },
+          grid: { display:false }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#94a3b8' },
+          grid: { color: 'rgba(148,163,184,0.15)', borderDash: [4,4] }
+        },
+        y1: {
+          position: 'right',
+          beginAtZero: true,
+          ticks: { color: '#94a3b8', callback: (v)=>'$'+v },
+          grid: { drawOnChartArea:false }
+        }
+      }
+    }
+  });
+});
+</script>
+
 </body>
 </html>

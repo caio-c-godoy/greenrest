@@ -1009,6 +1009,183 @@ const comercialData = {
     Obs.: Ao consolidar Marketing e Desenvolvimento do app, adicionamos a prospecção ativa B2B, ficando o modelo como mensalidade fixa + percentual sobre o resultado mensal, conforme descrito abaixo, em substituição ao valor anterior.
   </p>
 <p class="section-sub">Pagamos o time e crescemos juntos.</p></div>
+
+<!-- =========== COMPARATIVO — Antes vs Novo Modelo ====================== -->
+<style>
+  .cmp-wrap{background:var(--ff-card,#0f172a);border:1px solid rgba(255,255,255,.06);
+    border-radius:16px;padding:22px;margin-top:26px}
+  .cmp-title{font-size:clamp(18px,2.2vw,22px);font-weight:700;margin:0 0 12px}
+  .cmp-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}
+  @media (max-width:980px){.cmp-grid{grid-template-columns:1fr}}
+
+  .cmp-card{background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.08);
+    border-radius:12px;padding:14px}
+  .cmp-row{display:grid;grid-template-columns:1fr 160px;gap:10px;align-items:center;margin:8px 0}
+  .cmp-row input[type="number"]{width:100%;background:#0b1220;border:1px solid rgba(255,255,255,.1);
+    border-radius:10px;padding:10px;color:#e8f0ff;font-variant-numeric:tabular-nums}
+  .cmp-row input[type="range"]{width:100%}
+  .cmp-hint{opacity:.75;font-size:12px;margin-top:6px}
+
+  .cmp-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .cmp-pill{cursor:pointer;background:linear-gradient(135deg,#1f2937aa,#111827aa);
+    border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:8px 12px;font-size:12px}
+  .cmp-pill:hover{border-color:rgba(255,255,255,.25)}
+
+  .cmp-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .cmp-kpi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;padding:10px;text-align:center}
+  .cmp-kpi small{opacity:.8}
+  .cmp-kpi b{display:block;margin-top:2px;font-size:18px;font-variant-numeric:tabular-nums}
+
+  #cmpChart{height:360px;min-height:300px}
+</style>
+
+<div class="cmp-wrap" id="comparativo">
+  <div class="cmp-title">Comparativo — investimento: Antes × Novo modelo</div>
+  <div class="cmp-grid">
+    <!-- Controles -->
+    <div class="cmp-card">
+      <div class="cmp-row">
+        <label>Meses no horizonte (1–12)</label>
+        <input id="cmp-meses" type="range" min="1" max="12" value="12">
+      </div>
+      <div class="cmp-row">
+        <label>Incremental mensal (ex.: $30.000)</label>
+        <input id="cmp-incremental" type="number" step="500" min="0" value="30000">
+      </div>
+
+      <div class="cmp-hint">
+        <b>Antes</b>: $880/mês + $18.800 (único). <br>
+        <b>Novo</b>: $2.600/mês + <b>10%</b> do incremental <b>a partir do 4º mês</b>.
+      </div>
+
+      <div class="cmp-pills" id="cmp-presets">
+        <span class="cmp-pill" data-inc="0">$0</span>
+        <span class="cmp-pill" data-inc="10000">$10k</span>
+        <span class="cmp-pill" data-inc="20000">$20k</span>
+        <span class="cmp-pill" data-inc="30000">$30k</span>
+        <span class="cmp-pill" data-inc="50000">$50k</span>
+      </div>
+
+      <div class="cmp-kpis">
+        <div class="cmp-kpi"><small>Total “Antes”</small><b id="cmp-total-antes">$0</b></div>
+        <div class="cmp-kpi"><small>Total “Novo”</small><b id="cmp-total-novo">$0</b></div>
+        <div class="cmp-kpi"><small>Diferença</small><b id="cmp-diff">$0</b></div>
+      </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="cmp-card">
+      <div id="cmpChart" aria-label="Custo acumulado — Antes vs Novo"></div>
+      <div class="cmp-hint">
+        Curvas mostram o <b>custo acumulado</b> ao longo dos meses. O “Novo” inclui operação comercial e crescimento.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ECharts (remova se já estiver na página) -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+<script>
+(function(){
+  // parâmetros dos modelos
+  const OLD_MONTHLY = 880;
+  const OLD_ONE_OFF = 18800;
+
+  const NEW_RETAINER = 2600;
+  const PERF_PERCENT = 10;    // % sobre incremental
+  const PERF_START   = 4;     // aplica a partir do 4º mês
+
+  // helpers
+  const $ = id => document.getElementById(id);
+  const money = v => v.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+  const range = n => Array.from({length:n},(_,i)=>i+1);
+
+  const $meses = $('cmp-meses');
+  const $inc   = $('cmp-incremental');
+  const $tAnt  = $('cmp-total-antes');
+  const $tNov  = $('cmp-total-novo');
+  const $diff  = $('cmp-diff');
+
+  // presets
+  $('cmp-presets').onclick = (e)=>{
+    const v = e.target?.dataset?.inc;
+    if(v){ $inc.value = v; update(); }
+  };
+
+  const chart = echarts.init($('cmpChart'));
+
+  function computeOld(months){
+    let cum=0, arr=[];
+    for(let m=1;m<=months;m++){
+      const mensual = OLD_MONTHLY + (m===1? OLD_ONE_OFF:0);
+      cum += mensual; arr.push(cum);
+    }
+    return arr;
+  }
+
+  function computeNew(months, inc){
+    let cum=0, arr=[];
+    for(let m=1;m<=months;m++){
+      const perf = (m>=PERF_START)? inc*(PERF_PERCENT/100): 0;
+      const mensual = NEW_RETAINER + perf;
+      cum += mensual; arr.push(cum);
+    }
+    return arr;
+  }
+
+  function totalsFromSeries(series){
+    return series.at(-1) ?? 0;
+  }
+
+  function update(){
+    const months = Math.max(1, Math.min(12, +$meses.value||12));
+    const inc    = Math.max(0, +$inc.value||0);
+
+    const x = range(months).map(m=>`M${m}`);
+    const oldSeries = computeOld(months);
+    const newSeries = computeNew(months, inc);
+
+    const totalOld = totalsFromSeries(oldSeries);
+    const totalNew = totalsFromSeries(newSeries);
+
+    $tAnt.textContent  = money(totalOld);
+    $tNov.textContent  = money(totalNew);
+    const d = totalNew - totalOld;
+    $diff.textContent  = (d>=0? '+':'') + money(d);
+
+    chart.setOption({
+      backgroundColor:'transparent',
+      tooltip:{
+        trigger:'axis',
+        valueFormatter:v=>money(v)
+      },
+      legend:{
+        top: 0,
+        textStyle:{color:'#dfe7ff'},
+        data:['Antes: $880/m + $18.8k','Novo: $2.6k/m + 10% após 90d']
+      },
+      grid:{left:10,right:10,top:40,bottom:10,containLabel:true},
+      xAxis:{type:'category',data:x,axisLabel:{color:'#dfe7ff'}},
+      yAxis:{type:'value',axisLabel:{color:'#dfe7ff',formatter:v=>'$'+(v/1000)+'k'}},
+      series:[
+        {name:'Antes: $880/m + $18.8k', type:'line', smooth:true, areaStyle:{opacity:.15},
+         lineStyle:{width:3}, color:'#60a5fa', data:oldSeries},
+        {name:'Novo: $2.6k/m + 10% após 90d', type:'line', smooth:true, areaStyle:{opacity:.12},
+         lineStyle:{width:3}, color:'#22c55e', data:newSeries}
+      ]
+    });
+  }
+
+  window.addEventListener('resize', ()=>chart.resize());
+  [$meses,$inc].forEach(i=>i.addEventListener('input',update));
+  update();
+})();
+</script>
+<!-- =========== /COMPARATIVO ============================================ -->
+
+
 <div class="grid g-2">
 <div class="card pricebox">
 <div>
